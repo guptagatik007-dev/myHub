@@ -1,5 +1,7 @@
 import { Navigate, NavLink, Route, Routes } from "react-router";
 import ConversationsPage from "./pages/ConversationsPage.jsx";
+import NotebooksPage from "./pages/NotebooksPage.jsx";
+import ProjectsPage from "./pages/ProjectsPage.jsx";
 import Placeholder from "./pages/Placeholder.jsx";
 import "./App.css";
 
@@ -26,8 +28,10 @@ export default function App() {
         <Route path="/" element={<Navigate to="/conversations" replace />} />
         <Route path="/conversations" element={<ConversationsPage />} />
         <Route path="/conversations/:id" element={<ConversationsPage />} />
-        <Route path="/notebooks/*" element={<Placeholder title="Notebooks" />} />
-        <Route path="/projects/*" element={<Placeholder title="Projects" />} />
+        <Route path="/notebooks" element={<NotebooksPage />} />
+        <Route path="/notebooks/:id" element={<NotebooksPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/:id" element={<ProjectsPage />} />
         <Route path="/imports" element={<Placeholder title="Imports" />} />
         <Route path="*" element={<Placeholder title="Page not found" />} />
       </Routes>

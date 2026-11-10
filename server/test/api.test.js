@@ -1,33 +1,10 @@
-// Smoke tests. Run: npm test
-// Uses a throwaway data dir so your real database is never touched.
-import { test, before, after } from "node:test";
+// Conversation archive smoke tests. Run: npm test
+import { test } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import { setupTestServer } from "./helpers.js";
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "myhub-test-"));
-process.env.HUB_DATA_DIR = tmpDir;
-
-let server, base;
-
-before(async () => {
-  const { app } = await import("../app.js");
-  await import("../scripts/seed.js");
-  server = app.listen(0, "127.0.0.1");
-  await new Promise((r) => server.once("listening", r));
-  base = `http://127.0.0.1:${server.address().port}/api`;
-});
-
-after(() => {
-  server.close();
-  fs.rmSync(tmpDir, { recursive: true, force: true });
-});
-
-const get = async (p) => {
-  const res = await fetch(base + p);
-  return { status: res.status, body: await res.json() };
-};
+const t = setupTestServer();
+const get = (p) => t.api("GET", p);
 
 test("health", async () => {
   const { body } = await get("/health");
