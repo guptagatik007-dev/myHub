@@ -1,46 +1,36 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import { api } from "../api.js";
+import { useLocation, useNavigate, useParams } from "react-router";
 import ConversationList from "../components/ConversationList.jsx";
 import ConversationView from "../components/ConversationView.jsx";
+import { useSidebar } from "../sidebarContext.js";
 
-// The selected conversation comes from the URL: /conversations/:id
+// /conversations      -> search & browse everything
+// /conversations/:id  -> read (or continue) one conversation
 export default function ConversationsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const selectedId = id ? Number(id) : null;
-  const [listVersion, setListVersion] = useState(0); // bump to refresh the sidebar
-  const [error, setError] = useState(null);
+  const location = useLocation();
+  const { refreshSidebar } = useSidebar();
 
-  async function newChat() {
-    try {
-      const { id: newId } = await api("POST", "/chats");
-      setListVersion((v) => v + 1);
-      navigate(`/conversations/${newId}`);
-    } catch (e) { setError(e.message); }
+  if (id) {
+    return (
+      <main className="page page-chat">
+        <ConversationView
+          key={id}
+          id={Number(id)}
+          firstMessage={location.state?.firstMessage}
+          firstModel={location.state?.model}
+          onFirstMessageSent={() => navigate(location.pathname, { replace: true, state: null })}
+          onChange={refreshSidebar}
+        />
+      </main>
+    );
   }
 
   return (
-    <div className="layout">
-      <aside className="sidebar">
-        <button className="btn primary full" onClick={newChat}>+ New chat</button>
-        {error && <p className="error">{error}</p>}
-        <ConversationList
-          selectedId={selectedId}
-          refreshKey={listVersion}
-          onSelect={(convId) => navigate(`/conversations/${convId}`)}
-        />
-      </aside>
-      <main className="content">
-        {selectedId ? (
-          <ConversationView key={selectedId} id={selectedId} onChange={() => setListVersion((v) => v + 1)} />
-        ) : (
-          <p className="empty">
-            <strong>No conversation selected</strong>
-            Pick one from the list, search across all providers, or start a new chat.
-          </p>
-        )}
-      </main>
-    </div>
+    <main className="page">
+      <h1 className="page-title">Search</h1>
+      <p className="muted lead">Every conversation, across all providers.</p>
+      <ConversationList onSelect={(convId) => navigate(`/conversations/${convId}`)} />
+    </main>
   );
 }

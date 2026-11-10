@@ -35,9 +35,11 @@ router.get("/:id", (req, res) => {
     .prepare("SELECT * FROM knowledge_entries WHERE notebook_id = ? ORDER BY created_at")
     .all(id);
   notebook.conversations = db.prepare(`
-    SELECT c.id, c.title, c.provider, c.created_at FROM conversations c
+    SELECT c.id, c.title, c.provider, c.created_at, c.updated_at,
+      (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
+    FROM conversations c
     JOIN conversation_notebooks cn ON cn.conversation_id = c.id
-    WHERE cn.notebook_id = ? ORDER BY c.created_at DESC`).all(id);
+    WHERE cn.notebook_id = ? ORDER BY COALESCE(c.updated_at, c.created_at) DESC`).all(id);
   notebook.projects = db.prepare(`
     SELECT p.id, p.title, p.status FROM projects p
     JOIN notebook_projects np ON np.project_id = p.id

@@ -1,29 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
+import { SendIcon } from "./Icons.jsx";
+import ModelPicker from "./ModelPicker.jsx";
+import { useModelChoice } from "../useModelChoice.js";
 
 // Message box for MyHub chats + local model status.
-// onSent({ userMessage, assistantMessage }) / onPending(text | null)
-export default function ChatComposer({ conversationId, onSent, onPending }) {
+// autoSend: text to send once on mount (first message from the home screen).
+export default function ChatComposer({ conversationId, onSent, onPending, autoSend, autoSendModel, onAutoSent }) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
-  const [model, setModel] = useState(null);
+  const [status, setStatus] = useState(null); // local model server status
+  const autoSentRef = useRef(false);
+  const [models, model, setModel] = useModelChoice();
 
-  const refreshStatus = () => api("GET", "/local-model").then(setModel).catch(() => {});
-  useEffect(() => { refreshStatus(); }, []);
+  const refreshStatus = () => api("GET", "/local-model").then(setStatus).catch(() => {});
 
-  async function send(e) {
-    e?.preventDefault();
-    const content = text.trim();
+  async function sendText(content, modelId = model) {
     if (!content || sending) return;
     setSending(true); setError(null);
     onPending(content);
-    setText("");
-    // Show "starting" if the model isn't loaded yet (first message is slow).
-    if (model?.status !== "ready") setModel((m) => m && { ...m, status: "starting" });
+    // Loading takes a while if the model isn't running yet or we're switching.
+    setStatus((s) => (s && (s.status !== "ready" || s.model !== modelId) ? { ...s, status: "starting", model: modelId } : s));
     try {
-      const result = await api("POST", `/chats/${conversationId}/messages`, { content });
-      onSent(result);
+      onSent(await api("POST", `/chats/${conversationId}/messages`, { content, ...(modelId ? { model: modelId } : {}) }));
     } catch (err) {
       setError(err.message);
       onSent(null); // reload: your message was saved even though the reply failed
@@ -34,37 +34,51 @@ export default function ChatComposer({ conversationId, onSent, onPending }) {
     }
   }
 
-  async function stopModel() {
-    setModel(await api("POST", "/local-model/stop"));
+  useEffect(() => {
+    refreshStatus();
+    if (autoSend && !autoSentRef.current) {
+      autoSentRef.current = true; // guard: React dev mode runs effects twice
+      onAutoSent?.();
+      sendText(autoSend, autoSendModel);
+    }
+    // Run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function submit(e) {
+    e?.preventDefault();
+    const content = text.trim();
+    if (!content) return;
+    setText("");
+    sendText(content);
   }
 
   return (
-    <form className="composer" onSubmit={send}>
-      <textarea
-        className="field"
-        rows={3}
-        placeholder="Message the local model…  (Enter to send, Shift+Enter for new line)"
-        value={text}
-        disabled={sending}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) send(e);
-        }}
-      />
-      <div className="row">
-        <button className="btn primary" disabled={!text.trim() || sending}>
-          {sending ? "Waiting…" : "Send"}
-        </button>
-        {model && (
-          <span className="model-status">
-            <span className={`dot ${model.status}`} aria-hidden="true" />
-            {model.model.split("/").pop()} · {model.status === "starting" ? "loading model (can take a minute)…" : model.status}
-          </span>
-        )}
-        <span className="spacer-flex" />
-        {model?.status === "ready" && !sending && (
-          <button type="button" className="btn-link" onClick={stopModel}>Stop model</button>
-        )}
+    <form className="composer" onSubmit={submit}>
+      <div className="composer-box glass">
+        <textarea
+          rows={2}
+          placeholder="Reply…"
+          value={text}
+          disabled={sending}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) submit(e); }}
+        />
+        <div className="composer-actions">
+          <ModelPicker models={models} value={model} onChange={setModel} disabled={sending} />
+          {status && (
+            <span className="model-status" title={status.error || ""}>
+              <span className={`dot ${status.status}`} aria-hidden="true" />
+              <span className="hide-narrow">{status.status === "starting" ? "loading model…" : status.status}</span>
+              {status.status === "ready" && !sending && (
+                <button type="button" className="btn-link" onClick={async () => setStatus(await api("POST", "/local-model/stop"))}>
+                  stop
+                </button>
+              )}
+            </span>
+          )}
+          <button className="send-btn" disabled={!text.trim() || sending} aria-label="Send"><SendIcon /></button>
+        </div>
       </div>
       {error && <p className="error" role="alert">{error}</p>}
     </form>

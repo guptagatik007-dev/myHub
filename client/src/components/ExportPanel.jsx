@@ -36,7 +36,7 @@ export default function ExportPanel({ kind, id }) {
 
   const download = `${url}${query ? "&" : "?"}download=1`;
   return (
-    <div className="export-panel">
+    <div className="export-panel glass">
       <div className="row export-actions">
         <button className="btn primary" onClick={copy} disabled={!markdown}>Copy</button>
         <a className="btn" href={download} download>Download .md</a>

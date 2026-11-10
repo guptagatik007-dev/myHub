@@ -38,3 +38,9 @@ test("404s", async () => {
   assert.equal((await get("/conversations/abc")).status, 404);
   assert.equal((await get("/nope")).status, 404);
 });
+
+test("limit + most recently active first", async () => {
+  assert.equal((await get("/conversations?limit=1")).body.length, 1);
+  assert.equal((await get("/conversations?limit=-5")).body.length, 1); // clamped to >= 1
+  assert.equal((await get("/conversations?limit=abc")).body.length, 2); // invalid -> default
+});

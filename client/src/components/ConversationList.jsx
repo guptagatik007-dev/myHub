@@ -23,6 +23,7 @@ export default function ConversationList({ selectedId, onSelect, refreshKey = 0 
 
   return (
     <div>
+      <div className="search-row">
       <input
         className="search"
         type="search"
@@ -36,6 +37,7 @@ export default function ConversationList({ selectedId, onSelect, refreshKey = 0 
           <option key={p} value={p}>{p === "hub" ? "MyHub chats" : p || "All providers"}</option>
         ))}
       </select>
+      </div>
 
       {error && <p className="error">{error}</p>}
       {!error && conversations.length === 0 && (

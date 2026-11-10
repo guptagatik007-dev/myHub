@@ -13,7 +13,7 @@ export default function ImportsPage() {
   const info = useApi("/imports/info");
 
   return (
-    <main className="content">
+    <main className="page">
       <h1 className="page-title">Imports</h1>
       <p className="muted lead">
         Upload a provider export. The original file is kept unchanged; conversations are parsed into the hub.
@@ -83,7 +83,7 @@ function UploadForm({ onDone }) {
 
   const busy = progress !== null;
   return (
-    <form className="upload-form" onSubmit={submit}>
+    <form className="upload-form glass" onSubmit={submit}>
       <label>
         <span className="field-label">Provider</span>
         <select value={provider} onChange={(e) => setProvider(e.target.value)} disabled={busy}>

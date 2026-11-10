@@ -4,7 +4,7 @@ import CreateForm from "../components/CreateForm.jsx";
 import EditableText from "../components/EditableText.jsx";
 import EntrySection from "../components/EntrySection.jsx";
 import LinkPicker from "../components/LinkPicker.jsx";
-import LinkedConversations from "../components/LinkedConversations.jsx";
+import ChatCards from "../components/ChatCards.jsx";
 import ExportPanel from "../components/ExportPanel.jsx";
 
 const STATUSES = ["active", "paused", "done"];
@@ -22,7 +22,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+      <aside className="list-pane glass">
         <CreateForm label="project" onCreate={create} />
         {list.error && <p className="error">{list.error}</p>}
         {list.data?.length === 0 && (
@@ -43,7 +43,7 @@ export default function ProjectsPage() {
           ))}
         </ul>
       </aside>
-      <main className="content">
+      <main className="content page">
         {id ? (
           <ProjectView key={id} id={id} onChange={list.reload} onDeleted={() => { list.reload(); navigate("/projects"); }} />
         ) : (
@@ -83,6 +83,8 @@ function ProjectView({ id, onChange, onDeleted }) {
       <LinkPicker label="Notebooks" kind="notebooks" linked={p.notebooks}
         linkPath={(nid) => `/links/notebook/${nid}/project/${p.id}`} onChange={reload} />
 
+      <ChatCards conversations={p.conversations} parent={{ project_id: p.id }} label="project" />
+
       <section className="section">
         <h2 className="section-title">Description</h2>
         <EditableText value={p.description} placeholder="A short description." onSave={(description) => patch({ description })} />
@@ -97,7 +99,6 @@ function ProjectView({ id, onChange, onDeleted }) {
       <EntrySection title="Decisions" type="decision" entries={p.entries} parent={parent} onChange={refresh}
         hint="Choices made, and why." />
       <EntrySection title="Notes" type="note" entries={p.entries} parent={parent} onChange={refresh} />
-      <LinkedConversations conversations={p.conversations} />
 
       <section className="section">
         <h2 className="section-title">Export</h2>

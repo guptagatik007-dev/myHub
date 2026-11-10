@@ -3,7 +3,7 @@ import LinkPicker from "./LinkPicker.jsx";
 import ExportPanel from "./ExportPanel.jsx";
 import ChatComposer from "./ChatComposer.jsx";
 
-export default function ConversationView({ id, onChange }) {
+export default function ConversationView({ id, onChange, firstMessage, firstModel, onFirstMessageSent }) {
   const [conv, setConv] = useState(null);
   const [error, setError] = useState(null);
   const [version, setVersion] = useState(0); // bump to reload
@@ -34,20 +34,26 @@ export default function ConversationView({ id, onChange }) {
 
   return (
     <article>
-      <h1 className="page-title">{conv.title}</h1>
-      <div className="page-meta">
-        <span className={`badge ${conv.provider}`}>{conv.provider}</span>
-        <span>{conv.created_at?.slice(0, 10)}</span>
-        <span>{conv.messages.length} messages</span>
-      </div>
-      <LinkPicker label="Notebooks" kind="notebooks" linked={conv.notebooks}
-        linkPath={(nid) => `/links/conversation/${conv.id}/notebook/${nid}`} onChange={reload} />
-      <LinkPicker label="Projects" kind="projects" linked={conv.projects}
-        linkPath={(pid) => `/links/conversation/${conv.id}/project/${pid}`} onChange={reload} />
-      {conv.messages.length > 0 && <ExportPanel kind="conversation" id={conv.id} />}
-      <div className="spacer" />
+      <header className="conv-header">
+        <h1 className="conv-heading">{conv.title}</h1>
+        <div className="page-meta">
+          <span className={`badge ${conv.provider}`}>{conv.provider}</span>
+          <span>{conv.created_at?.slice(0, 10)}</span>
+          <span>{conv.messages.length} messages</span>
+        </div>
+        <details className="conv-tools">
+          <summary>Links & export</summary>
+          <div className="conv-tools-body">
+            <LinkPicker label="Notebooks" kind="notebooks" linked={conv.notebooks}
+              linkPath={(nid) => `/links/conversation/${conv.id}/notebook/${nid}`} onChange={reload} />
+            <LinkPicker label="Projects" kind="projects" linked={conv.projects}
+              linkPath={(pid) => `/links/conversation/${conv.id}/project/${pid}`} onChange={reload} />
+            {conv.messages.length > 0 && <ExportPanel kind="conversation" id={conv.id} />}
+          </div>
+        </details>
+      </header>
 
-      {conv.messages.length === 0 && !pending && isHubChat && (
+      {conv.messages.length === 0 && !pending && !firstMessage && isHubChat && (
         <p className="empty"><strong>New chat</strong>Runs on your Mac with the local model. Nothing leaves this machine.</p>
       )}
 
@@ -55,7 +61,7 @@ export default function ConversationView({ id, onChange }) {
         <div key={m.id} className={`message ${m.role}`}>
           <div className="role">
             {m.role}
-            {m.model_name && <span className="muted"> · {m.model_name}</span>}
+            {m.model_name && <span className="muted" title={m.model_name}> · {m.model_name.split("/").pop()}</span>}
           </div>
           {/* Plain text rendering: imported content is data, never HTML. */}
           <div className="text">{m.content}</div>
@@ -74,6 +80,9 @@ export default function ConversationView({ id, onChange }) {
         <ChatComposer
           conversationId={conv.id}
           onPending={setPending}
+          autoSend={conv.messages.length === 0 ? firstMessage : undefined}
+          autoSendModel={firstModel}
+          onAutoSent={onFirstMessageSent}
           onSent={() => { reload(); onChange?.(); }}
         />
       )}

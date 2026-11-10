@@ -13,9 +13,10 @@ function toFtsQuery(text) {
     .join(" ");
 }
 
-// GET /api/conversations?q=...&provider=...
+// GET /api/conversations?q=...&provider=...&limit=...  (most recently active first)
 router.get("/", (req, res) => {
   const { q = "", provider = "" } = req.query;
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 500, 1), 500);
   const where = [];
   const params = {};
 
@@ -34,13 +35,13 @@ router.get("/", (req, res) => {
   }
 
   const rows = db.prepare(`
-    SELECT c.id, c.title, c.provider, c.created_at,
+    SELECT c.id, c.title, c.provider, c.created_at, c.updated_at,
       (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
     FROM conversations c
     ${where.length ? "WHERE " + where.join(" AND ") : ""}
-    ORDER BY c.created_at DESC
-    LIMIT 500
-  `).all(params);
+    ORDER BY COALESCE(c.updated_at, c.created_at) DESC, c.id DESC
+    LIMIT @limit
+  `).all({ ...params, limit });
 
   res.json(rows);
 });

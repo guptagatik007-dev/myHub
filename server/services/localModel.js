@@ -13,13 +13,17 @@ const cfg = () => ({
 });
 
 // status: stopped | starting | ready | error
-const state = { status: "stopped", error: null, startedAt: null, child: null, starting: null, log: [] };
+const state = { status: "stopped", error: null, startedAt: null, child: null, starting: null, log: [], model: null };
 
 const baseUrl = () => `http://127.0.0.1:${cfg().port}`;
 
 export function getStatus() {
   const { python, model, port } = cfg();
-  return { status: state.status, error: state.error, model, port, python, configured: Boolean(python), startedAt: state.startedAt };
+  return {
+    status: state.status, error: state.error,
+    model: state.model || model, // running model, or the default
+    port, python, configured: Boolean(python), startedAt: state.startedAt,
+  };
 }
 
 async function isHealthy() {
@@ -31,21 +35,31 @@ async function isHealthy() {
   }
 }
 
-/** Start the model server if needed. Resolves when it's ready to answer. */
-export function start() {
-  if (state.status === "ready") return Promise.resolve(getStatus());
-  if (state.starting) return state.starting; // already starting: wait for the same promise
-  state.starting = doStart().finally(() => { state.starting = null; });
+/**
+ * Start the model server (with `model`, default from config) if needed.
+ * If a different model is running, it's stopped first. Resolves when ready.
+ */
+export async function start(model = cfg().model) {
+  if (state.starting) await state.starting.catch(() => {}); // let an in-progress start finish first
+  if (state.status === "ready" && state.model === model) return getStatus();
+  if (state.status === "ready" || state.child) stop(); // switching models
+  state.starting = doStart(model).finally(() => { state.starting = null; });
   return state.starting;
 }
 
-async function doStart() {
-  const { python, model, port, startTimeoutMs } = cfg();
+async function doStart(model) {
+  const { python, port, startTimeoutMs } = cfg();
+  state.model = model;
 
-  // Already running (e.g. you started it by hand)? Just use it.
+  // Something already answering on the port (e.g. started by hand, or still shutting down)?
+  // Only reuse it if we didn't just stop it — otherwise wait for the port to free up.
   if (await isHealthy()) {
-    Object.assign(state, { status: "ready", error: null, startedAt: new Date().toISOString() });
-    return getStatus();
+    if (!state.stoppedAt || Date.now() - state.stoppedAt > 10000) {
+      Object.assign(state, { status: "ready", error: null, startedAt: new Date().toISOString() });
+      return getStatus();
+    }
+    const freeBy = Date.now() + 10000;
+    while (Date.now() < freeBy && (await isHealthy())) await new Promise((r) => setTimeout(r, 300));
   }
 
   if (!python) return fail("LOCAL_MODEL_PYTHON is not set. Add it to server/.env.");
@@ -69,7 +83,8 @@ async function doStart() {
   let exited = false;
   child.on("exit", (code) => {
     exited = true;
-    if (state.child === child) state.child = null;
+    if (state.child !== child) return; // an old process we already replaced/stopped
+    state.child = null;
     if (state.status !== "stopped") {
       const tail = state.log.slice(-5).join("\n");
       fail(`Model process exited (code ${code}).${tail ? "\n" + tail : ""}`);
@@ -98,7 +113,7 @@ function fail(message) {
 
 export function stop() {
   const child = state.child;
-  Object.assign(state, { status: "stopped", error: null, startedAt: null, child: null });
+  Object.assign(state, { status: "stopped", error: null, startedAt: null, child: null, stoppedAt: child ? Date.now() : state.stoppedAt });
   if (child && child.exitCode === null) child.kill("SIGTERM");
   return getStatus();
 }
@@ -108,11 +123,11 @@ export function stop() {
  * messages: [{ role: "user" | "assistant" | "system", content }]
  * Returns { content, reasoning, model, usage }.
  */
-export async function chat(messages) {
-  const status = await start();
+export async function chat(messages, model = cfg().model) {
+  const status = await start(model);
   if (status.status !== "ready") throw Object.assign(new Error(status.error || "Model not ready"), { status: 503 });
 
-  const { model, maxTokens, thinking } = cfg();
+  const { maxTokens, thinking } = cfg();
   const res = await fetch(`${baseUrl()}/v1/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

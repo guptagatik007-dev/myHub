@@ -4,7 +4,7 @@ import CreateForm from "../components/CreateForm.jsx";
 import EditableText from "../components/EditableText.jsx";
 import EntrySection from "../components/EntrySection.jsx";
 import LinkPicker from "../components/LinkPicker.jsx";
-import LinkedConversations from "../components/LinkedConversations.jsx";
+import ChatCards from "../components/ChatCards.jsx";
 import ExportPanel from "../components/ExportPanel.jsx";
 
 export default function NotebooksPage() {
@@ -20,7 +20,7 @@ export default function NotebooksPage() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+      <aside className="list-pane glass">
         <CreateForm label="notebook" onCreate={create} />
         {list.error && <p className="error">{list.error}</p>}
         {list.data?.length === 0 && (
@@ -40,7 +40,7 @@ export default function NotebooksPage() {
           ))}
         </ul>
       </aside>
-      <main className="content">
+      <main className="content page">
         {id ? (
           <NotebookView key={id} id={id} onChange={list.reload} onDeleted={() => { list.reload(); navigate("/notebooks"); }} />
         ) : (
@@ -72,6 +72,8 @@ function NotebookView({ id, onChange, onDeleted }) {
       <LinkPicker label="Projects" kind="projects" linked={nb.projects}
         linkPath={(pid) => `/links/notebook/${nb.id}/project/${pid}`} onChange={reload} />
 
+      <ChatCards conversations={nb.conversations} parent={{ notebook_id: nb.id }} label="notebook" />
+
       <section className="section">
         <h2 className="section-title">Description</h2>
         <EditableText value={nb.description} placeholder="What is this notebook about?" onSave={(description) => patch({ description })} />
@@ -84,7 +86,6 @@ function NotebookView({ id, onChange, onDeleted }) {
       <EntrySection title="Notes" type="note" entries={nb.entries} parent={parent} onChange={refresh} />
       <EntrySection title="Ideas" type="idea" entries={nb.entries} parent={parent} onChange={refresh} />
       <EntrySection title="Links" type="link" entries={nb.entries} parent={parent} onChange={refresh} />
-      <LinkedConversations conversations={nb.conversations} />
 
       <section className="section">
         <h2 className="section-title">Export</h2>

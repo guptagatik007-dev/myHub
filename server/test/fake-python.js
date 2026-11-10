@@ -2,6 +2,7 @@
 // Pretends to be `python -m mlx_lm server` for tests: /health + /v1/chat/completions.
 import http from "node:http";
 const port = Number(process.argv[process.argv.indexOf("--port") + 1]);
+const model = process.argv[process.argv.indexOf("--model") + 1];
 http.createServer((req, res) => {
   if (req.url === "/health") return res.end('{"status":"ok"}');
   let body = "";
@@ -13,7 +14,7 @@ http.createServer((req, res) => {
     res.end(JSON.stringify({
       choices: [{ finish_reason: "stop", message: {
         role: "assistant",
-        content: `<think>pondering</think>\nEcho (${messages.length} msgs, thinking=${chat_template_kwargs.enable_thinking}): ${last}`,
+        content: `<think>pondering</think>\nEcho (${messages.length} msgs, thinking=${chat_template_kwargs.enable_thinking}, model=${model}): ${last}`,
       } }],
       usage: { total_tokens: 7 },
     }));
