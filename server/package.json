@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "dev": "node --watch index.js",
-    "seed": "node scripts/seed.js"
+    "dev": "node --env-file-if-exists=.env --watch index.js",
+    "seed": "node scripts/seed.js",
+    "start": "node --env-file-if-exists=.env index.js"
   },
   "keywords": [],
   "author": "",

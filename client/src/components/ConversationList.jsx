@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-const PROVIDERS = ["", "chatgpt", "claude", "gemini", "other"];
+const PROVIDERS = ["", "hub", "chatgpt", "claude", "gemini", "other"];
 
-export default function ConversationList({ selectedId, onSelect }) {
+export default function ConversationList({ selectedId, onSelect, refreshKey = 0 }) {
   const [query, setQuery] = useState("");
   const [provider, setProvider] = useState("");
   const [conversations, setConversations] = useState([]);
@@ -19,7 +19,7 @@ export default function ConversationList({ selectedId, onSelect }) {
         .catch((err) => !ignore && setError(err.message));
     }, 250);
     return () => { ignore = true; clearTimeout(timer); };
-  }, [query, provider]);
+  }, [query, provider, refreshKey]);
 
   return (
     <div>
@@ -33,7 +33,7 @@ export default function ConversationList({ selectedId, onSelect }) {
       />
       <select aria-label="Filter by provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
         {PROVIDERS.map((p) => (
-          <option key={p} value={p}>{p || "All providers"}</option>
+          <option key={p} value={p}>{p === "hub" ? "MyHub chats" : p || "All providers"}</option>
         ))}
       </select>
 

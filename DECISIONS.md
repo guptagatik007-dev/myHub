@@ -12,3 +12,12 @@
 - **`app.js` / `index.js` split** so tests can start the app on a random port.
 - **Tests:** Node's built-in `node:test` + `fetch`, no test libraries.
 - **UI: dark theme, minimal.** All colors/spacing/type are tokens at the top of `client/src/App.css`. One accent (amber). System fonts only (no external font requests — local-first). Provider shown as dot + text label, never color alone.
+- **Uploads are streamed** to disk (no multer); SHA-256 computed while streaming. Max 2 GB, `.zip`/`.json` only.
+- **Originals** saved at `imports/original/<provider>/<batch>-<date>/<file>` and made read-only. Same checksum → rejected (409).
+- **Import statuses:** `stored` (saved, no parser yet) → `done` / `partial` (warnings or some failures) / `failed` (parser crashed; original kept). Stored batches can be processed later.
+- **Duplicate conversations** skipped by `(provider, external_id)`, or by content hash when there's no ID. Each conversation saved in its own transaction so one bad one doesn't block the rest.
+- **Parsers** live in `server/importers/`, one per provider, registered in `importers/index.js`. They must never modify the file.
+- **Local model chat (added beyond original V0 scope, by choice).** MyHub runs `<venv python> -m mlx_lm server` on demand (OpenAI-style API on 127.0.0.1:8080) and stops it when MyHub stops. Configured in `server/.env` (`LOCAL_MODEL_PYTHON`, `LOCAL_MODEL`, …). We call the venv's python directly — no activation; this also survives the venv folder being moved (its script shebangs don't).
+- **Chats are `provider = 'hub'` conversations**; each reply stores `model_name`, plus reasoning/usage in `metadata_json`. Your message is saved before the model is called, so a failure never loses it. Imported conversations are read-only.
+- **Thinking off by default** (`LOCAL_MODEL_THINKING=false`) — shorter, faster replies.
+- **No streaming yet**: reply appears when complete. Can add later.
