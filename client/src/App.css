@@ -1,9 +1,15 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, sans-serif; color: #222; background: #fafafa; }
-.layout { display: flex; height: 100vh; }
+.app { display: flex; flex-direction: column; height: 100vh; }
+.topbar { display: flex; align-items: center; gap: 24px; padding: 0 16px; height: 48px; border-bottom: 1px solid #ddd; background: #fff; flex-shrink: 0; }
+.brand { font-weight: 700; }
+.topbar nav { display: flex; gap: 4px; overflow-x: auto; }
+.topbar nav a { padding: 6px 10px; border-radius: 6px; color: #444; text-decoration: none; white-space: nowrap; }
+.topbar nav a:hover { background: #f0f0f0; }
+.topbar nav a.active { background: #e6efff; color: #1a3d8f; font-weight: 500; }
+.layout { display: flex; flex: 1; min-height: 0; }
 .sidebar { width: 340px; border-right: 1px solid #ddd; padding: 16px; overflow-y: auto; background: #fff; }
 .content { flex: 1; padding: 24px; overflow-y: auto; }
-h1 { font-size: 20px; margin: 0 0 12px; }
 .search, select { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
 .conv-list { list-style: none; padding: 0; margin: 0; }
 .conv-list li { padding: 10px; border-radius: 6px; cursor: pointer; }
@@ -22,6 +28,7 @@ h1 { font-size: 20px; margin: 0 0 12px; }
 .muted { color: #888; }
 .error { color: #b00020; }
 @media (max-width: 700px) {
-  .layout { flex-direction: column; height: auto; }
+  .app { height: auto; }
+  .layout { flex-direction: column; }
   .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ddd; }
 }
