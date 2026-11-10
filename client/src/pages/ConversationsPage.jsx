@@ -20,7 +20,10 @@ export default function ConversationsPage() {
         {selectedId ? (
           <ConversationView key={selectedId} id={selectedId} />
         ) : (
-          <p className="muted">Select a conversation.</p>
+          <p className="empty">
+            <strong>No conversation selected</strong>
+            Pick one from the list, or search across all providers.
+          </p>
         )}
       </main>
     </div>

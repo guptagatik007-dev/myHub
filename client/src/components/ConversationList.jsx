@@ -25,31 +25,42 @@ export default function ConversationList({ selectedId, onSelect }) {
     <div>
       <input
         className="search"
+        type="search"
+        aria-label="Search conversations"
         placeholder="Search titles and messages…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <select value={provider} onChange={(e) => setProvider(e.target.value)}>
+      <select aria-label="Filter by provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
         {PROVIDERS.map((p) => (
           <option key={p} value={p}>{p || "All providers"}</option>
         ))}
       </select>
 
       {error && <p className="error">{error}</p>}
-      {!error && conversations.length === 0 && <p className="muted">No conversations.</p>}
+      {!error && conversations.length === 0 && (
+        <p className="empty">
+          <strong>No conversations found</strong>
+          {query || provider ? "Try a different search or filter." : "Import an export from the Imports page."}
+        </p>
+      )}
 
       <ul className="conv-list">
         {conversations.map((c) => (
-          <li
-            key={c.id}
-            className={c.id === selectedId ? "selected" : ""}
-            onClick={() => onSelect(c.id)}
-          >
-            <div className="conv-title">{c.title}</div>
-            <div className="conv-meta">
-              <span className={`badge ${c.provider}`}>{c.provider}</span>
-              {c.created_at?.slice(0, 10)} · {c.message_count} msgs
-            </div>
+          <li key={c.id}>
+            {/* A real button: works with keyboard (Tab + Enter) */}
+            <button
+              className={`conv-item ${c.id === selectedId ? "selected" : ""}`}
+              aria-current={c.id === selectedId ? "true" : undefined}
+              onClick={() => onSelect(c.id)}
+            >
+              <div className="conv-title">{c.title}</div>
+              <div className="conv-meta">
+                <span className={`badge ${c.provider}`}>{c.provider}</span>
+                <span>{c.created_at?.slice(0, 10)}</span>
+                <span>{c.message_count} messages</span>
+              </div>
+            </button>
           </li>
         ))}
       </ul>

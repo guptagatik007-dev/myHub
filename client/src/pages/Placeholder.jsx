@@ -1,8 +1,8 @@
 export default function Placeholder({ title }) {
   return (
     <main className="content">
-      <h2>{title}</h2>
-      <p className="muted">Coming soon.</p>
+      <h1 className="page-title">{title}</h1>
+      <p className="empty">Coming soon.</p>
     </main>
   );
 }

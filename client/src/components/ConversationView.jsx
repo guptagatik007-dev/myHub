@@ -19,13 +19,14 @@ export default function ConversationView({ id }) {
 
   return (
     <article>
-      <h2>{conv.title}</h2>
-      <p className="conv-meta">
+      <h1 className="page-title">{conv.title}</h1>
+      <div className="page-meta">
         <span className={`badge ${conv.provider}`}>{conv.provider}</span>
-        {conv.created_at?.slice(0, 10)}
-        {conv.notebooks.length > 0 && <> · Notebooks: {conv.notebooks.map((n) => n.title).join(", ")}</>}
-        {conv.projects.length > 0 && <> · Projects: {conv.projects.map((p) => p.title).join(", ")}</>}
-      </p>
+        <span>{conv.created_at?.slice(0, 10)}</span>
+        <span>{conv.messages.length} messages</span>
+        {conv.notebooks.length > 0 && <span>Notebooks: {conv.notebooks.map((n) => n.title).join(", ")}</span>}
+        {conv.projects.length > 0 && <span>Projects: {conv.projects.map((p) => p.title).join(", ")}</span>}
+      </div>
 
       {conv.messages.map((m) => (
         <div key={m.id} className={`message ${m.role}`}>

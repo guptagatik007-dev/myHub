@@ -11,3 +11,4 @@
 - **Server binds to 127.0.0.1 only** — not reachable from the local network.
 - **`app.js` / `index.js` split** so tests can start the app on a random port.
 - **Tests:** Node's built-in `node:test` + `fetch`, no test libraries.
+- **UI: dark theme, minimal.** All colors/spacing/type are tokens at the top of `client/src/App.css`. One accent (amber). System fonts only (no external font requests — local-first). Provider shown as dot + text label, never color alone.
