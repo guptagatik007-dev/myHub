@@ -5,6 +5,7 @@ import EditableText from "../components/EditableText.jsx";
 import EntrySection from "../components/EntrySection.jsx";
 import LinkPicker from "../components/LinkPicker.jsx";
 import LinkedConversations from "../components/LinkedConversations.jsx";
+import ExportPanel from "../components/ExportPanel.jsx";
 
 export default function NotebooksPage() {
   const { id } = useParams();
@@ -84,6 +85,11 @@ function NotebookView({ id, onChange, onDeleted }) {
       <EntrySection title="Ideas" type="idea" entries={nb.entries} parent={parent} onChange={refresh} />
       <EntrySection title="Links" type="link" entries={nb.entries} parent={parent} onChange={refresh} />
       <LinkedConversations conversations={nb.conversations} />
+
+      <section className="section">
+        <h2 className="section-title">Export</h2>
+        <ExportPanel kind="notebook" id={nb.id} />
+      </section>
 
       <div className="danger-zone">
         <button className="btn danger" onClick={remove}>Delete notebook</button>

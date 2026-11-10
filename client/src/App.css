@@ -252,3 +252,16 @@ button, a, [role="button"] { cursor: pointer; }
 .status.done { color: var(--text-faint); }
 
 .danger-zone { margin-top: var(--s7); padding-top: var(--s4); border-top: 1px solid var(--border); }
+
+/* ===== Export ===== */
+a.btn { display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
+.export-panel { border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--s3); background: var(--surface); }
+.export-actions { margin-top: 0; flex-wrap: wrap; }
+.spacer-flex { flex: 1; }
+.check { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--fs-sm); color: var(--text-muted); }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.export-preview {
+  margin: var(--s3) 0 0; padding: var(--s3); max-height: 420px; overflow: auto;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-sm);
+  font: var(--fs-sm)/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-muted);
+}

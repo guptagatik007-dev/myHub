@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import LinkPicker from "./LinkPicker.jsx";
+import ExportPanel from "./ExportPanel.jsx";
 
 export default function ConversationView({ id }) {
   const [conv, setConv] = useState(null);
@@ -31,6 +32,7 @@ export default function ConversationView({ id }) {
         linkPath={(nid) => `/links/conversation/${conv.id}/notebook/${nid}`} onChange={() => setVersion((v) => v + 1)} />
       <LinkPicker label="Projects" kind="projects" linked={conv.projects}
         linkPath={(pid) => `/links/conversation/${conv.id}/project/${pid}`} onChange={() => setVersion((v) => v + 1)} />
+      <ExportPanel kind="conversation" id={conv.id} />
       <div className="spacer" />
 
       {conv.messages.map((m) => (

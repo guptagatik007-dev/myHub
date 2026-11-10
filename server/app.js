@@ -6,6 +6,7 @@ import notebooksRouter from "./routes/notebooks.js";
 import projectsRouter from "./routes/projects.js";
 import entriesRouter from "./routes/entries.js";
 import linksRouter from "./routes/links.js";
+import exportRouter from "./routes/export.js";
 
 export const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api/notebooks", notebooksRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/entries", entriesRouter);
 app.use("/api/links", linksRouter);
+app.use("/api/export", exportRouter);
 
 // Unknown API route -> JSON 404
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found" }));

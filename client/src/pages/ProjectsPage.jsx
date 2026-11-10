@@ -5,6 +5,7 @@ import EditableText from "../components/EditableText.jsx";
 import EntrySection from "../components/EntrySection.jsx";
 import LinkPicker from "../components/LinkPicker.jsx";
 import LinkedConversations from "../components/LinkedConversations.jsx";
+import ExportPanel from "../components/ExportPanel.jsx";
 
 const STATUSES = ["active", "paused", "done"];
 
@@ -97,6 +98,11 @@ function ProjectView({ id, onChange, onDeleted }) {
         hint="Choices made, and why." />
       <EntrySection title="Notes" type="note" entries={p.entries} parent={parent} onChange={refresh} />
       <LinkedConversations conversations={p.conversations} />
+
+      <section className="section">
+        <h2 className="section-title">Export</h2>
+        <ExportPanel kind="project" id={p.id} />
+      </section>
 
       <div className="danger-zone">
         <button className="btn danger" onClick={remove}>Delete project</button>
